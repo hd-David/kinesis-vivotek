@@ -16,13 +16,13 @@ aws iot create-thing \
 
 aws iam create-role \
     --role-name kvs_iamrole_$GIT_SHA \
-    --assume-role-policy-document "file://$SCRIPTPATH/$GIT_SHA/iam-policy-document.json" \
+    --assume-role-policy-document "file://$SCRIPTPATH/iam-policy-document.json" \
         > iam-role.json
 
 aws iam put-role-policy \
     --role-name kvs_iamrole_$GIT_SHA \
     --policy-name kvs_policy_$GIT_SHA \
-    --policy-document 'file://$SCRIPTPATH/$GIT_SHA/iam-permission-document.json'
+    --policy-document 'file://$SCRIPTPATH/iam-permission-document.json'
 
 aws iot create-role-alias \
     --role-alias kvs_iamrole_alias_$GIT_SHA \
