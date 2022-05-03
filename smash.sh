@@ -49,7 +49,7 @@ cat > $SCRIPTPATH/$GIT_SHA/iot-policy-document.json <<EOF
 	]
 }
 EOF
-aws iot create-policy --policy-name kvs_iotpolicy_$GIT_SHA/
+aws iot create-policy --policy-name kvs_iotpolicy_$GIT_SHA \
     --policy-document 'file://$SCRIPTPATH/$GIT_SHA/iot-policy-document.json'
 
 aws iot create-keys-and-certificate --set-as-active \
