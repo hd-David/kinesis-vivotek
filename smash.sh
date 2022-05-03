@@ -11,7 +11,7 @@ aws iot create-thing-type --thing-type-name thing_type_$GIT_SHA \
 
 aws iot create-thing \
     --thing-name thing_$GIT_SHA \
-    --thing-type-name thing_type_$GIT_SHA \
+    --thing-type-name kvs_stream_$GIT_SHA \
         > $SCRIPTPATH/$GIT_SHA/iot-thing.json
 
 aws iam create-role \
