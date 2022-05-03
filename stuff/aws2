@@ -1,0 +1,10 @@
+export IOT_CREDENTIAL_ENDPOINT=c2qoqgl91j3vzz.credentials.iot.eu-central-1.amazonaws.com
+curl --silent -H "x-amzn-iot-thingname:kvs_pm_test_stream" \
+	--cert certificate.pem \
+	--key private.pem.key \
+	https://$IOT_GET_CREDENTIAL_ENDPOINT/role-aliases/kvs_pm_iamrole_alias/credentials \
+	--cacert ./cacert.pem > token.json
+export AWS_ACCESS_KEY_ID=$(jq --raw-output '.credentials.accessKeyId' token.json)
+export AWS_SECRET_ACCESS_KEY=$(jq --raw-output '.credentials.secretAccessKey' token.json)
+export AWS_SESSION_TOKEN=$(jq --raw-output '.credentials.sessionToken' token.json)
+aws kinesisvideo describe-stream --stream-name kvs_pm_test_stream

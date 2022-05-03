@@ -1,0 +1,21 @@
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "kvs_pm_iamrole",
+        "RoleId": "AROAVE6O3G7KHF5YNSM54",
+        "Arn": "arn:aws:iam::354231728084:role/kvs_pm_iamrole",
+        "CreateDate": "2022-05-03T09:36:39Z",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "credentials.iot.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        }
+    }
+}

@@ -1,0 +1,4 @@
+{
+    "roleAlias": "kvs_pm_iamrole_alias",
+    "roleAliasArn": "arn:aws:iot:eu-central-1:354231728084:rolealias/kvs_pm_iamrole_alias"
+}
