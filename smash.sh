@@ -4,32 +4,40 @@ export AWS_DEFAULT_REGION=eu-central-1
 export GIT_SHA=$(git rev-parse --short HEAD)
 export SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
+export THING_TYPE_NAME=thing_type_$GIT_SHA
+export THING_NAME=thing_stream_$GIT_SHA
+export IAM_ROLE_NAME=kvs_iamrole_$GIT_SHA
+export IAM_POLICY_NAME=kvs_policy_$GIT_SHA
+export IAM_ROLE_ALIAS=kvs_iamrole_alias_$GIT_SHA
+export IOT_POLICY_NAME=kvs_iotpolicy_$GIT_SHA
+export GIT_SHA_PATH=$SCRIPTPATH/$GIT_SHA
+
 mkdir $GIT_SHA
 
-aws iot create-thing-type --thing-type-name thing_type_$GIT_SHA \
+aws iot create-thing-type --thing-type-name $THING_TYPE_NAME \
         > $SCRIPTPATH/$GIT_SHA/iot-thing-type.json
 
 aws iot create-thing \
-    --thing-name thing_$GIT_SHA \
-    --thing-type-name thing_type_$GIT_SHA \
-        > $SCRIPTPATH/$GIT_SHA/iot-thing.json
+    --thing-name $THING_NAME \
+    --thing-type-name $THING_TYPE_NAME \
+        > $GIT_SHA_PATH/iot-thing.json
 
 aws iam create-role \
-    --role-name kvs_iamrole_$GIT_SHA \
+    --role-name $IAM_ROLE_NAME \
     --assume-role-policy-document "file://$SCRIPTPATH/iam-policy-document.json" \
-        > $SCRIPTPATH/$GIT_SHA/iam-role.json
+        > $GIT_SHA_PATH/iam-role.json
 
 aws iam put-role-policy \
-    --role-name kvs_iamrole_$GIT_SHA \
-    --policy-name kvs_policy_$GIT_SHA \
+    --role-name $IAM_ROLE_NAME \
+    --policy-name $IAM_POLICY_NAME \
     --policy-document 'file://$SCRIPTPATH/iam-permission-document.json'
 
 aws iot create-role-alias \
-    --role-alias kvs_iamrole_alias_$GIT_SHA \
-    --role-arn $(jq --raw-output '.Role.Arn' $SCRIPTPATH/$GIT_SHA/iam-role.json) \
-    --credential-duration-seconds 3600 > $SCRIPTPATH/$GIT_SHA/iot-role-alias.json
+    --role-alias $IAM_ROLE_ALIAS \
+    --role-arn $(jq --raw-output '.Role.Arn' $GIT_SHA_PATH/iam-role.json) \
+    --credential-duration-seconds 3600 > $GIT_SHA_PATH/iot-role-alias.json
 
-cat > $SCRIPTPATH/$GIT_SHA/iot-policy-document.json <<EOF
+cat > $GIT_SHA_PATH/iot-policy-document.json <<EOF
 {
 	"Version": "2012-10-17",
 	"Statement": [{
@@ -37,58 +45,58 @@ cat > $SCRIPTPATH/$GIT_SHA/iot-policy-document.json <<EOF
 			"Action": [
 				"iot:Connect"
 			],
-			"Resource": "$(jq --raw-output '.roleAliasArn' $SCRIPTPATH/$GIT_SHA/iot-role-alias.json)"
+			"Resource": "$(jq --raw-output '.roleAliasArn' $GIT_SHA_PATH/iot-role-alias.json)"
 		},
 		{
 			"Effect": "Allow",
 			"Action": [
 				"iot:AssumeRoleWithCertificate"
 			],
-			"Resource": "$(jq --raw-output '.roleAliasArn' $SCRIPTPATH/$GIT_SHA/iot-role-alias.json)"
+			"Resource": "$(jq --raw-output '.roleAliasArn' $GIT_SHA_PATH/iot-role-alias.json)"
 		}
 	]
 }
 EOF
-aws iot create-policy --policy-name kvs_iotpolicy_$GIT_SHA \
-    --policy-document 'file://$SCRIPTPATH/$GIT_SHA/iot-policy-document.json'
+aws iot create-policy --policy-name $IOT_POLICY_NAME \
+    --policy-document 'file://$GIT_SHA_PATH/iot-policy-document.json'
 
 aws iot create-keys-and-certificate --set-as-active \
-    --certificate-pem-outfile $SCRIPTPATH/$GIT_SHA/certificate.pem \
-    --public-key-outfile $SCRIPTPATH/$GIT_SHA/public.pem.key \
-    --private-key-outfile $SCRIPTPATH/$GIT_SHA/private.pem.key \
-        > $SCRIPTPATH/$GIT_SHA/certificate
+    --certificate-pem-outfile $GIT_SHA_PATH/certificate.pem \
+    --public-key-outfile $GIT_SHA_PATH/public.pem.key \
+    --private-key-outfile $GIT_SHA_PATH/private.pem.key \
+        > $GIT_SHA_PATH/certificate
 
 aws iot attach-policy \
-    --policy-name kvs_iotpolicy_$GIT_SHA \
-    --target $(jq --raw-output '.certificateArn' $SCRIPTPATH/$GIT_SHA/certificate)
+    --policy-name $IOT_POLICY_NAME \
+    --target $(jq --raw-output '.certificateArn' $GIT_SHA_PATH/certificate)
 
 aws iot attach-thing-principal \
-    --thing-name thing_$GIT_SHA \
-    --principal $(jq --raw-output '.certificateArn' $SCRIPTPATH/$GIT_SHA/certificate)
+    --thing-name $THING_NAME \
+    --principal $(jq --raw-output '.certificateArn' $GIT_SHA_PATH/certificate)
 
 aws iot describe-endpoint \
     --endpoint-type iot:CredentialProvider \
     --output text \
-        > $SCRIPTPATH/$GIT_SHA/iot-credential-provider.txt
+        > $GIT_SHA_PATH/iot-credential-provider.txt
 
 curl --silent 'https://www.amazontrust.com/repository/SFSRootCAG2.pem' \
-    --output $SCRIPTPATH/$GIT_SHA/cacert.pem
+    --output $GIT_SHA_PATH/cacert.pem
 
 aws kinesisvideo create-stream \
     --data-retention-in-hours 24 \
-    --stream-name kvs_stream_$GIT_SHA 
+    --stream-name $THING_NAME
     
-export IOT_GET_CREDENTIAL_ENDPOINT=$(cat  $SCRIPTPATH/$GIT_SHA/iot-credential-provider.txt)
+export IOT_GET_CREDENTIAL_ENDPOINT=$(cat $GIT_SHA_PATH/iot-credential-provider.txt)
 
-curl --silent -H "x-amzn-iot-thingname: thing_$GIT_SHA" \
-    https://$IOT_GET_CREDENTIAL_ENDPOINT/role-aliases/kvs_iamrole_alias_$GIT_SHA/credentials \
-    --cert $SCRIPTPATH/$GIT_SHA/certificate.pem \
-    --key $SCRIPTPATH/$GIT_SHA/private.pem.key \
-    --cacert $SCRIPTPATH/$GIT_SHA/cacert.pem \
-        > $SCRIPTPATH/$GIT_SHA/token.json
+curl --silent -H "x-amzn-iot-thingname: $THING_NAME" \
+    https://$IOT_GET_CREDENTIAL_ENDPOINT/role-aliases/$IAM_ROLE_ALIAS/credentials \
+    --cert $GIT_SHA_PATH/certificate.pem \
+    --key $GIT_SHA_PATH/private.pem.key \
+    --cacert $GIT_SHA_PATH/cacert.pem \
+        > $GIT_SHA_PATH/token.json
 
-export AWS_ACCESS_KEY_ID=$(jq --raw-output '.credentials.accessKeyId' $SCRIPTPATH/$GIT_SHA/token.json)
-export AWS_SECRET_ACCESS_KEY=$(jq --raw-output '.credentials.secretAccessKey' $SCRIPTPATH/$GIT_SHA/token.json)
-export AWS_SESSION_TOKEN=$(jq --raw-output '.credentials.sessionToken' $SCRIPTPATH/$GIT_SHA/token.json)
+export AWS_ACCESS_KEY_ID=$(jq --raw-output '.credentials.accessKeyId' $GIT_SHA_PATH/token.json)
+export AWS_SECRET_ACCESS_KEY=$(jq --raw-output '.credentials.secretAccessKey' $GIT_SHA_PATH/token.json)
+export AWS_SESSION_TOKEN=$(jq --raw-output '.credentials.sessionToken' $GIT_SHA_PATH/token.json)
 
-aws kinesisvideo describe-stream --stream-name kvs_stream_$GIT_SHA
+aws kinesisvideo describe-stream --stream-name $THING_NAME
