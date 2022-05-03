@@ -80,7 +80,7 @@ aws kinesisvideo create-stream \
     
 export IOT_GET_CREDENTIAL_ENDPOINT=$(cat  $SCRIPTPATH/$GIT_SHA/iot-credential-provider.txt)
 
-curl --silent -H "x-amzn-iot-thingname: kvs_stream_$GIT_SHA" \
+curl --silent -H "x-amzn-iot-thingname: thing_$GIT_SHA" \
     https://$IOT_GET_CREDENTIAL_ENDPOINT/role-aliases/kvs_iamrole_alias_$GIT_SHA/credentials \
     --cert $SCRIPTPATH/$GIT_SHA/certificate.pem \
     --key $SCRIPTPATH/$GIT_SHA/private.pem.key \
