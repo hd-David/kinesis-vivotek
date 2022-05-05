@@ -108,3 +108,12 @@ echo IAM_POLICY_NAME = $IAM_POLICY_NAME >> $GIT_SHA_PATH/output
 echo IAM_ROLE_ALIAS  = $IAM_ROLE_ALIAS >> $GIT_SHA_PATH/output
 echo IOT_POLICY_NAME = $IOT_POLICY_NAME >> $GIT_SHA_PATH/output
 echo GIT_SHA_PATH    = $GIT_SHA_PATH >> $GIT_SHA_PATH/output
+
+cat > $GIT_SHA_PATH/renew-token.sh <<EOF
+curl --silent -H "x-amzn-iot-thingname: $THING_NAME" \
+    https://$IOT_GET_CREDENTIAL_ENDPOINT/role-aliases/$IAM_ROLE_ALIAS/credentials \
+    --cert $GIT_SHA_PATH/certificate.pem \
+    --key $GIT_SHA_PATH/private.pem.key \
+    --cacert $GIT_SHA_PATH/cacert.pem \
+        > $GIT_SHA_PATH/token.json
+EOF
