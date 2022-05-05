@@ -100,3 +100,11 @@ export AWS_SECRET_ACCESS_KEY=$(jq --raw-output '.credentials.secretAccessKey' $G
 export AWS_SESSION_TOKEN=$(jq --raw-output '.credentials.sessionToken' $GIT_SHA_PATH/token.json)
 
 aws kinesisvideo describe-stream --stream-name $THING_NAME
+
+cat THING_TYPE_NAME=$THING_TYPE_NAME >> $GIT_SHA_PATH/output
+cat THING_NAME=$THING_NAME >> $GIT_SHA_PATH/output
+cat IAM_ROLE_NAME=$IAM_ROLE_NAME >> $GIT_SHA_PATH/output
+cat IAM_POLICY_NAME=$IAM_POLICY_NAME >> $GIT_SHA_PATH/output
+cat IAM_ROLE_ALIAS=$IAM_ROLE_ALIAS >> $GIT_SHA_PATH/output
+cat IOT_POLICY_NAME=$IOT_POLICY_NAME >> $GIT_SHA_PATH/output
+cat GIT_SHA_PATH=$GIT_SHA_PATH >> $GIT_SHA_PATH/output
