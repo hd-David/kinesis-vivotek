@@ -116,7 +116,9 @@ curl --silent -H "x-amzn-iot-thingname: $THING_NAME" \
     --key $GIT_SHA_PATH/private.pem.key \
     --cacert $GIT_SHA_PATH/cacert.pem \
         > $GIT_SHA_PATH/token.json
+echo EXPIRY=$(jq --raw-output '.credentials.accessKeyId' $GIT_SHA_PATH/token.json)
 echo AWS_ACCESS_KEY_ID=$(jq --raw-output '.credentials.accessKeyId' $GIT_SHA_PATH/token.json)
 echo AWS_SECRET_ACCESS_KEY=$(jq --raw-output '.credentials.secretAccessKey' $GIT_SHA_PATH/token.json)
 echo AWS_SESSION_TOKEN=$(jq --raw-output '.credentials.sessionToken' $GIT_SHA_PATH/token.json)
+echo EXPIRATION=$(jq --raw-output '.credentials.expiration' $GIT_SHA_PATH/token.json)
 EOF
