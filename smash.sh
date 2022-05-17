@@ -12,13 +12,13 @@ export IAM_ROLE_ALIAS=kvs_iamrole_alias_$GIT_SHA
 export IOT_POLICY_NAME=kvs_iotpolicy_$GIT_SHA
 export GIT_SHA_PATH=$SCRIPTPATH/$GIT_SHA
 
-mkdir $GIT_SHA
+mkdir $GIT_SHA 
 
 aws iot create-thing-type --thing-type-name $THING_TYPE_NAME \
         > $SCRIPTPATH/$GIT_SHA/iot-thing-type.json
 
 aws iot create-thing \
-    --thing-name $THING_NAME \
+    --thing-name $THING_NAME \+
     --thing-type-name $THING_TYPE_NAME \
         > $GIT_SHA_PATH/iot-thing.json
 
@@ -32,7 +32,7 @@ aws iam put-role-policy \
     --policy-name $IAM_POLICY_NAME \
     --policy-document 'file://$SCRIPTPATH/iam-permission-document.json'
 
-aws iot create-role-alias \
+aws iot create-role-alias\
     --role-alias $IAM_ROLE_ALIAS \
     --role-arn $(jq --raw-output '.Role.Arn' $GIT_SHA_PATH/iam-role.json) \
     --credential-duration-seconds 3600 > $GIT_SHA_PATH/iot-role-alias.json
